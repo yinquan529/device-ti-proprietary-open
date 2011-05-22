@@ -39,39 +39,31 @@ library_version := $(shell \
     sed "s%.*libIMGegl[.]so[.]\(.*\)%\1%" \
     )
 
+include $(CLEAR_VARS)
+LOCAL_MODULE := pvr-bin
+LOCAL_MODULE_TAGS := eng
+LOCAL_PREBUILT_EXECUTABLES := \
+    bin/pvrsrvinit
+include $(BUILD_MULTI_PREBUILT)
+
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := vendor_libs
+LOCAL_MODULE_TAGS := eng
+LOCAL_MODULE_CLASS := SHARED_LIBRARIES
+LOCAL_MODULE_PATH := $(TARGET_OUT)/vendor/lib
 copy_lib_files_from := \
     $(wildcard $(LOCAL_PATH)/vendor/lib/*.so.*) \
     $(wildcard $(LOCAL_PATH)/vendor/lib/egl/*.so.*) \
     $(wildcard $(LOCAL_PATH)/vendor/lib/hw/*.so.*)
 copy_lib_files_to := $(copy_lib_files_from:$(LOCAL_PATH)/%=$(TARGET_OUT)/%)
-
-libs_to_link := $(copy_lib_files_to:%.$(library_version)=%)
-
-misc_files_from := \
-    $(LOCAL_PATH)/bin/pvrsrvinit
-misc_files_to := $(misc_files_from:$(LOCAL_PATH)/%=$(TARGET_OUT)/%)
-
-copy_files_to := \
-    $(copy_lib_files_to) \
-    $(libs_to_link) \
-    $(misc_files_to)
-
 $(copy_lib_files_to): $(TARGET_OUT)/% : $(LOCAL_PATH)/% | $(ACP)
 	$(transform-prebuilt-to-target)
-
-$(misc_files_to): $(TARGET_OUT)/% : $(LOCAL_PATH)/% | $(ACP)
-	$(transform-prebuilt-to-target)
-
-$(libs_to_link): % : %.$(library_version)
+libs_to_link := $(copy_lib_files_from:$(LOCAL_PATH)/%.$(library_version)=$(TARGET_OUT)/%)
+$(libs_to_link): % : %.$(library_version) | $(ACP)
 	$(local-transform-link-to-target)
-
-include $(CLEAR_VARS)
-LOCAL_MODULE := gfx-libs
-LOCAL_MODULE_CLASS := SHARED_LIBRARIES
-LOCAL_MODULE_TAGS := optional
-
-include $(BUILD_SYSTEM)/base_rules.mk
-
-$(LOCAL_BUILT_MODULE): $(copy_files_to)
+ALL_PREBUILT += $(copy_lib_files_to)
+ALL_PREBUILT += $(libs_to_link)
+include $(BUILD_MULTI_PREBUILT)
 
 endif
