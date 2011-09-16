@@ -66,4 +66,7 @@ ALL_PREBUILT += $(copy_lib_files_to)
 ALL_PREBUILT += $(libs_to_link)
 include $(BUILD_MULTI_PREBUILT)
 
+PRODUCT_COPY_FILES += \
+        device/ti/proprietary-open/graphics/omap4/license.txt:root/license.txt
+
 endif
